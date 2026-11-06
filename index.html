@@ -121,13 +121,17 @@ async function cargar(){
   $("#estado").textContent = "Cargando…";
   try {
     const r = await fetch("/api/noticias");
-    datos = await r.json();
+    const texto = await r.text();
+    let json;
+    try { json = JSON.parse(texto); } catch { throw new Error(`HTTP ${r.status}: ${texto.slice(0, 300)}`); }
+    if (!r.ok || json.error) throw new Error(`HTTP ${r.status}: ${json.error || ""}`);
+    datos = json;
     const ok = datos.fuentes.filter((f) => f.ok).length;
     $("#estado").textContent = `${datos.noticias.length} notas de ${ok}/${datos.fuentes.length} medios · actualizado ${hace(datos.actualizado)}`;
     pintarChips(); pintar();
   } catch (e) {
     $("#estado").textContent = "Error al cargar";
-    $("#contenido").innerHTML = `<div class="aviso">No se pudieron traer las noticias. Probá recargar.</div>`;
+    $("#contenido").innerHTML = `<div class="aviso">No se pudieron traer las noticias.<br><br><code style="font-size:12px;white-space:pre-wrap">${esc(e.message)}</code></div>`;
   }
 }
 
