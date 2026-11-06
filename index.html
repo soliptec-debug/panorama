@@ -61,6 +61,40 @@
   td.tema{min-width:110px;max-width:120px;position:sticky;left:0;background:var(--card);z-index:1;font:12px system-ui,sans-serif;color:var(--muted)}
   th.tema{left:0;z-index:3;border-bottom-color:var(--line)}
   td.vacio{color:var(--muted);text-align:center;background:var(--soft)}
+  .corto{display:none}
+  @media (prefers-color-scheme: dark){ .tag,.pto{box-shadow:inset 0 0 0 1px rgba(255,255,255,.3)} }
+
+  /* ───── celular ───── */
+  @media (max-width:700px){
+    header{position:static;padding:10px 12px 8px}
+    h1{font-size:22px}
+    .top{gap:8px}
+    .sub{font-size:11px;width:100%}
+    .fila{margin-top:8px;gap:6px}
+    .tabs{flex-wrap:nowrap}
+    .largo{display:none} .corto{display:inline}
+    .tabs button{flex:1;padding:8px 6px;font-size:13px;border-radius:8px;border-bottom:1px solid var(--line)}
+    input[type=search]{min-width:0;flex:1 1 100%;font-size:16px;padding:7px 10px}
+    #vistas{display:flex;gap:6px;flex:1}
+    #vistas button{flex:1}
+    button{padding:6px 10px;font-size:13px}
+    /* temas y medios en una sola fila que se desliza */
+    #temas,#chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;margin-left:-12px;margin-right:-12px;padding:0 12px}
+    #temas::-webkit-scrollbar,#chips::-webkit-scrollbar{display:none}
+    .chip{flex-shrink:0;font-size:12px;padding:4px 9px}
+    main{padding:12px 12px 40px}
+    .lista{grid-template-columns:1fr;gap:10px}
+    article{padding:10px 12px}
+    h3{font-size:16px}
+    .grupos{grid-template-columns:1fr;gap:12px}
+    .grupo{padding:12px}
+    .linea{grid-template-columns:1fr;gap:4px}
+    .linea a{font-size:15px}
+    .columnas{grid-auto-columns:85vw}
+    .tablawrap{max-height:none}
+    td{min-width:170px;font-size:13px}
+    td.tema{min-width:80px}
+  }
 </style>
 </head>
 <body>
@@ -71,10 +105,10 @@
   </div>
   <div class="fila tabs">
     <button id="tabUltimas">Últimas noticias</button>
-    <button id="tabComparar">Cómo lo cubrió cada medio</button>
+    <button id="tabComparar"><span class="largo">Cómo lo cubrió cada medio</span><span class="corto">Comparar medios</span></button>
   </div>
   <div class="fila">
-    <input type="search" id="buscar" placeholder="Buscar un tema en todos los medios (ej: inflación, Milei, dólar)…">
+    <input type="search" id="buscar" placeholder="Buscar en todos los medios (ej: dólar, Milei)…">
     <span id="vistas"></span>
     <button id="recargar" title="Volver a cargar">↻</button>
   </div>
