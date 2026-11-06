@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panorama — noticias de todos lados</title>
+<style>
+  :root{
+    --bg:#f6f4ef; --card:#fff; --ink:#1b1b1b; --muted:#6b6b6b; --line:#e4e0d8; --acc:#1b1b1b;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#141414; --card:#1e1e1e; --ink:#eee; --muted:#9a9a9a; --line:#2e2e2e; --acc:#eee; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Georgia,"Times New Roman",serif}
+  header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:14px 20px 10px}
+  .top{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+  h1{margin:0;font-size:28px;letter-spacing:-.5px}
+  .sub{color:var(--muted);font:13px system-ui,sans-serif}
+  .controles{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;font-family:system-ui,sans-serif}
+  input[type=search]{flex:1;min-width:200px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:15px}
+  button{font:14px system-ui,sans-serif;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);cursor:pointer}
+  button.activo{background:var(--acc);color:var(--bg);border-color:var(--acc)}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;font-family:system-ui,sans-serif}
+  .chip{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:var(--card);cursor:pointer;user-select:none}
+  .chip .pto{width:9px;height:9px;border-radius:50%}
+  .chip.off{opacity:.35}
+  .chip.caida{text-decoration:line-through}
+  main{padding:18px 20px 60px;max-width:1400px;margin:0 auto}
+  .lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+  .columnas{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(290px,1fr);gap:14px;overflow-x:auto;padding-bottom:10px}
+  .col h2{font-size:18px;margin:0 0 8px;padding-bottom:6px;border-bottom:3px solid}
+  .col .items{display:flex;flex-direction:column;gap:10px}
+  article{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  article a{color:inherit;text-decoration:none}
+  article a:hover h3{text-decoration:underline}
+  h3{margin:4px 0 6px;font-size:17px;line-height:1.3}
+  .meta{font:12px system-ui,sans-serif;color:var(--muted);display:flex;gap:8px;align-items:center}
+  .tag{font-weight:600;color:#fff;padding:1px 7px;border-radius:4px}
+  p{margin:0;color:var(--muted);font-size:14px}
+  .aviso{color:var(--muted);font-family:system-ui,sans-serif;text-align:center;padding:40px}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <h1>Panorama</h1>
+    <span class="sub" id="estado">Cargando…</span>
+  </div>
+  <div class="controles">
+    <input type="search" id="buscar" placeholder="Buscar un tema en todos los medios (ej: inflación, Milei, dólar)…">
+    <button id="vMezcla" class="activo">Todo junto</button>
+    <button id="vMedios">Por medio</button>
+    <button id="recargar" title="Volver a cargar">↻</button>
+  </div>
+  <div class="chips" id="chips"></div>
+</header>
+<main id="contenido"><div class="aviso">Trayendo noticias…</div></main>
+
+<script>
+const $ = (s) => document.querySelector(s);
+let datos = { fuentes: [], noticias: [] };
+let vista = "mezcla";
+let apagadas = new Set();
+try { apagadas = new Set(JSON.parse(localStorage.getItem("apagadas") || "[]")); } catch {}
+
+function guardar(){ try { localStorage.setItem("apagadas", JSON.stringify([...apagadas])); } catch {} }
+
+function hace(iso){
+  if(!iso) return "";
+  const min = Math.round((Date.now() - new Date(iso)) / 60000);
+  if (min < 1) return "recién";
+  if (min < 60) return `hace ${min} min`;
+  const h = Math.round(min / 60);
+  if (h < 24) return `hace ${h} h`;
+  return new Date(iso).toLocaleDateString("es-AR", { day: "numeric", month: "short" });
+}
+const esc = (s) => String(s || "").replace(/[&<>"]/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+const sinTildes = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+
+function tarjeta(n, f){
+  return `<article><a href="${esc(n.link)}" target="_blank" rel="noopener">
+    <div class="meta"><span class="tag" style="background:${f.color}">${esc(f.nombre)}</span><span>${hace(n.fecha)}</span></div>
+    <h3>${esc(n.titulo)}</h3>${n.resumen ? `<p>${esc(n.resumen)}</p>` : ""}</a></article>`;
+}
+
+function pintarChips(){
+  $("#chips").innerHTML = datos.fuentes.map((f) =>
+    `<span class="chip ${apagadas.has(f.id) ? "off" : ""} ${f.ok ? "" : "caida"}" data-id="${f.id}"
+      title="${f.ok ? (f.via === "google" ? "Vía Google Noticias" : "Feed directo") + " · " + f.cantidad + " notas" : "No disponible: " + esc(f.error)}">
+      <span class="pto" style="background:${f.color}"></span>${esc(f.nombre)}</span>`).join("");
+  document.querySelectorAll(".chip").forEach((c) => c.onclick = () => {
+    const id = c.dataset.id;
+    apagadas.has(id) ? apagadas.delete(id) : apagadas.add(id);
+    guardar(); pintarChips(); pintar();
+  });
+}
+
+function pintar(){
+  const q = sinTildes($("#buscar").value.trim());
+  const fuentes = Object.fromEntries(datos.fuentes.map((f) => [f.id, f]));
+  const visibles = datos.noticias.filter((n) =>
+    !apagadas.has(n.fuente) && (!q || sinTildes(n.titulo + " " + n.resumen).includes(q)));
+
+  if (!visibles.length) { $("#contenido").innerHTML = `<div class="aviso">No hay noticias con ese filtro.</div>`; return; }
+
+  if (vista === "mezcla") {
+    $("#contenido").innerHTML = `<div class="lista">${visibles.map((n) => tarjeta(n, fuentes[n.fuente])).join("")}</div>`;
+  } else {
+    const cols = datos.fuentes.filter((f) => !apagadas.has(f.id)).map((f) => {
+      const items = visibles.filter((n) => n.fuente === f.id);
+      if (!items.length) return "";
+      return `<section class="col"><h2 style="border-color:${f.color}">${esc(f.nombre)}</h2>
+        <div class="items">${items.map((n) => tarjeta(n, f)).join("")}</div></section>`;
+    }).join("");
+    $("#contenido").innerHTML = `<div class="columnas">${cols}</div>`;
+  }
+}
+
+async function cargar(){
+  $("#estado").textContent = "Cargando…";
+  try {
+    const r = await fetch("/api/noticias");
+    datos = await r.json();
+    const ok = datos.fuentes.filter((f) => f.ok).length;
+    $("#estado").textContent = `${datos.noticias.length} notas de ${ok}/${datos.fuentes.length} medios · actualizado ${hace(datos.actualizado)}`;
+    pintarChips(); pintar();
+  } catch (e) {
+    $("#estado").textContent = "Error al cargar";
+    $("#contenido").innerHTML = `<div class="aviso">No se pudieron traer las noticias. Probá recargar.</div>`;
+  }
+}
+
+$("#buscar").oninput = pintar;
+$("#vMezcla").onclick = () => { vista = "mezcla"; $("#vMezcla").classList.add("activo"); $("#vMedios").classList.remove("activo"); pintar(); };
+$("#vMedios").onclick = () => { vista = "medios"; $("#vMedios").classList.add("activo"); $("#vMezcla").classList.remove("activo"); pintar(); };
+$("#recargar").onclick = cargar;
+cargar();
+</script>
+</body>
+</html>
