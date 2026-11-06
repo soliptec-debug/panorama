@@ -5,11 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Panorama — noticias de todos lados</title>
 <style>
-  :root{
-    --bg:#f6f4ef; --card:#fff; --ink:#1b1b1b; --muted:#6b6b6b; --line:#e4e0d8; --acc:#1b1b1b;
-  }
+  :root{ --bg:#f6f4ef; --card:#fff; --ink:#1b1b1b; --muted:#6b6b6b; --line:#e4e0d8; --acc:#1b1b1b; --soft:#efece5; }
   @media (prefers-color-scheme: dark){
-    :root{ --bg:#141414; --card:#1e1e1e; --ink:#eee; --muted:#9a9a9a; --line:#2e2e2e; --acc:#eee; }
+    :root{ --bg:#141414; --card:#1e1e1e; --ink:#eee; --muted:#9a9a9a; --line:#2e2e2e; --acc:#eee; --soft:#262626; }
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Georgia,"Times New Roman",serif}
@@ -17,28 +15,52 @@
   .top{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
   h1{margin:0;font-size:28px;letter-spacing:-.5px}
   .sub{color:var(--muted);font:13px system-ui,sans-serif}
-  .controles{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;font-family:system-ui,sans-serif}
+  .fila{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px;font-family:system-ui,sans-serif}
   input[type=search]{flex:1;min-width:200px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:15px}
   button{font:14px system-ui,sans-serif;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);cursor:pointer}
   button.activo{background:var(--acc);color:var(--bg);border-color:var(--acc)}
-  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;font-family:system-ui,sans-serif}
+  .tabs button{border-radius:8px 8px 0 0;border-bottom:none;font-weight:600}
+  .sep{flex:1}
   .chip{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:var(--card);cursor:pointer;user-select:none}
   .chip .pto{width:9px;height:9px;border-radius:50%}
   .chip.off{opacity:.35}
   .chip.caida{text-decoration:line-through}
-  main{padding:18px 20px 60px;max-width:1400px;margin:0 auto}
+  .chip.tema.activo{background:var(--acc);color:var(--bg);border-color:var(--acc)}
+  .chip small{opacity:.6}
+  main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
   .lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
   .columnas{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(290px,1fr);gap:14px;overflow-x:auto;padding-bottom:10px}
   .col h2{font-size:18px;margin:0 0 8px;padding-bottom:6px;border-bottom:3px solid}
   .col .items{display:flex;flex-direction:column;gap:10px}
   article{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
-  article a{color:inherit;text-decoration:none}
-  article a:hover h3{text-decoration:underline}
+  a{color:inherit;text-decoration:none}
+  a:hover{text-decoration:underline}
   h3{margin:4px 0 6px;font-size:17px;line-height:1.3}
-  .meta{font:12px system-ui,sans-serif;color:var(--muted);display:flex;gap:8px;align-items:center}
-  .tag{font-weight:600;color:#fff;padding:1px 7px;border-radius:4px}
+  .meta{font:12px system-ui,sans-serif;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .tag{font-weight:600;color:#fff;padding:1px 7px;border-radius:4px;white-space:nowrap}
+  .tagtema{font-weight:600;padding:1px 7px;border-radius:4px;background:var(--soft);color:var(--ink)}
   p{margin:0;color:var(--muted);font-size:14px}
   .aviso{color:var(--muted);font-family:system-ui,sans-serif;text-align:center;padding:40px}
+  /* comparación: tarjetas */
+  .grupos{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:16px}
+  @media (max-width:500px){ .grupos{grid-template-columns:1fr} }
+  .grupo{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .grupo .cab{display:flex;gap:8px;align-items:center;font:12px system-ui,sans-serif;color:var(--muted);margin-bottom:10px}
+  .linea{display:grid;grid-template-columns:130px 1fr;gap:10px;padding:7px 0;border-top:1px solid var(--line);align-items:start}
+  .linea:first-of-type{border-top:none}
+  .linea .tag{justify-self:start;font-size:12px;font-family:system-ui,sans-serif}
+  .linea a{font-size:16px;line-height:1.3}
+  .linea .hora{display:block;font:11px system-ui,sans-serif;color:var(--muted);margin-top:2px}
+  .faltan{margin-top:10px;font:12px system-ui,sans-serif;color:var(--muted)}
+  /* comparación: tabla */
+  .tablawrap{overflow:auto;max-height:calc(100vh - 230px);border:1px solid var(--line);border-radius:10px;background:var(--card)}
+  table{border-collapse:separate;border-spacing:0;font-size:14px;min-width:100%}
+  th,td{border-bottom:1px solid var(--line);border-right:1px solid var(--line);padding:8px 10px;vertical-align:top;text-align:left}
+  th{position:sticky;top:0;background:var(--card);font:600 13px system-ui,sans-serif;z-index:2;white-space:nowrap;border-bottom:3px solid}
+  td{min-width:200px;max-width:260px;line-height:1.3}
+  td.tema{min-width:110px;max-width:120px;position:sticky;left:0;background:var(--card);z-index:1;font:12px system-ui,sans-serif;color:var(--muted)}
+  th.tema{left:0;z-index:3;border-bottom-color:var(--line)}
+  td.vacio{color:var(--muted);text-align:center;background:var(--soft)}
 </style>
 </head>
 <body>
@@ -47,24 +69,33 @@
     <h1>Panorama</h1>
     <span class="sub" id="estado">Cargando…</span>
   </div>
-  <div class="controles">
+  <div class="fila tabs">
+    <button id="tabUltimas">Últimas noticias</button>
+    <button id="tabComparar">Cómo lo cubrió cada medio</button>
+  </div>
+  <div class="fila">
     <input type="search" id="buscar" placeholder="Buscar un tema en todos los medios (ej: inflación, Milei, dólar)…">
-    <button id="vMezcla" class="activo">Todo junto</button>
-    <button id="vMedios">Por medio</button>
+    <span id="vistas"></span>
     <button id="recargar" title="Volver a cargar">↻</button>
   </div>
-  <div class="chips" id="chips"></div>
+  <div class="fila" id="temas"></div>
+  <div class="fila" id="chips"></div>
 </header>
 <main id="contenido"><div class="aviso">Trayendo noticias…</div></main>
 
 <script>
 const $ = (s) => document.querySelector(s);
-let datos = { fuentes: [], noticias: [] };
-let vista = "mezcla";
-let apagadas = new Set();
-try { apagadas = new Set(JSON.parse(localStorage.getItem("apagadas") || "[]")); } catch {}
+let datos = { fuentes: [], noticias: [], grupos: [], temas: {} };
+const pref = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch { return d; } };
+const guardar = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
 
-function guardar(){ try { localStorage.setItem("apagadas", JSON.stringify([...apagadas])); } catch {} }
+let pestaña = pref("pestaña", "ultimas");          // ultimas | comparar
+let vistaU  = pref("vistaU", "mezcla");             // mezcla | medios
+let vistaC  = pref("vistaC", "tarjetas");           // tarjetas | tabla
+let tema    = pref("tema", "todos");
+let apagadas = new Set(pref("apagadas", []));
+
+const ORDEN_TEMAS = ["politica", "economia", "sociedad", "policiales", "internacional", "deportes", "espectaculos", "tecnologia", "otros"];
 
 function hace(iso){
   if(!iso) return "";
@@ -75,46 +106,125 @@ function hace(iso){
   if (h < 24) return `hace ${h} h`;
   return new Date(iso).toLocaleDateString("es-AR", { day: "numeric", month: "short" });
 }
-const esc = (s) => String(s || "").replace(/[&<>"]/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
-const sinTildes = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+const hora = (iso) => iso ? new Date(iso).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }) : "";
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+const sinTildes = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+const fuenteDe = () => Object.fromEntries(datos.fuentes.map((f) => [f.id, f]));
+const nombreTema = (t) => datos.temas?.[t] || t;
 
-function tarjeta(n, f){
-  return `<article><a href="${esc(n.link)}" target="_blank" rel="noopener">
-    <div class="meta"><span class="tag" style="background:${f.color}">${esc(f.nombre)}</span><span>${hace(n.fecha)}</span></div>
-    <h3>${esc(n.titulo)}</h3>${n.resumen ? `<p>${esc(n.resumen)}</p>` : ""}</a></article>`;
+// ───── filtros comunes ─────
+function pasa(n, q){
+  return !apagadas.has(n.fuente) && (tema === "todos" || n.tema === tema) &&
+    (!q || sinTildes(n.titulo + " " + n.resumen).includes(q));
 }
 
-function pintarChips(){
+// ───── controles ─────
+function pintarControles(){
+  $("#tabUltimas").classList.toggle("activo", pestaña === "ultimas");
+  $("#tabComparar").classList.toggle("activo", pestaña === "comparar");
+
+  const opciones = pestaña === "ultimas"
+    ? [["mezcla", "Todo junto"], ["medios", "Por medio"]]
+    : [["tarjetas", "Tarjetas"], ["tabla", "Tabla"]];
+  const actual = pestaña === "ultimas" ? vistaU : vistaC;
+  $("#vistas").innerHTML = opciones.map(([v, t]) => `<button data-v="${v}" class="${v === actual ? "activo" : ""}">${t}</button>`).join(" ");
+  $("#vistas").querySelectorAll("button").forEach((b) => b.onclick = () => {
+    if (pestaña === "ultimas") { vistaU = b.dataset.v; guardar("vistaU", vistaU); }
+    else { vistaC = b.dataset.v; guardar("vistaC", vistaC); }
+    pintarControles(); pintar();
+  });
+
+  // temas con cantidad
+  const cuenta = {};
+  if (pestaña === "ultimas") datos.noticias.forEach((n) => { if (!apagadas.has(n.fuente)) cuenta[n.tema] = (cuenta[n.tema] || 0) + 1; });
+  else gruposVisibles(true).forEach((g) => cuenta[g.tema] = (cuenta[g.tema] || 0) + 1);
+  const total = Object.values(cuenta).reduce((a, b) => a + b, 0);
+  $("#temas").innerHTML = `<span class="chip tema ${tema === "todos" ? "activo" : ""}" data-t="todos">Todos <small>${total}</small></span>` +
+    ORDEN_TEMAS.filter((t) => cuenta[t]).map((t) =>
+      `<span class="chip tema ${tema === t ? "activo" : ""}" data-t="${t}">${esc(nombreTema(t))} <small>${cuenta[t]}</small></span>`).join("");
+  $("#temas").querySelectorAll(".chip").forEach((c) => c.onclick = () => { tema = c.dataset.t; guardar("tema", tema); pintarControles(); pintar(); });
+
+  // medios
   $("#chips").innerHTML = datos.fuentes.map((f) =>
     `<span class="chip ${apagadas.has(f.id) ? "off" : ""} ${f.ok ? "" : "caida"}" data-id="${f.id}"
       title="${f.ok ? (f.via === "google" ? "Vía Google Noticias" : "Feed directo") + " · " + f.cantidad + " notas" : "No disponible: " + esc(f.error)}">
       <span class="pto" style="background:${f.color}"></span>${esc(f.nombre)}</span>`).join("");
-  document.querySelectorAll(".chip").forEach((c) => c.onclick = () => {
+  $("#chips").querySelectorAll(".chip").forEach((c) => c.onclick = () => {
     const id = c.dataset.id;
     apagadas.has(id) ? apagadas.delete(id) : apagadas.add(id);
-    guardar(); pintarChips(); pintar();
+    guardar("apagadas", [...apagadas]); pintarControles(); pintar();
   });
+}
+
+// ───── pestaña: últimas ─────
+function tarjeta(n, f){
+  return `<article><a href="${esc(n.link)}" target="_blank" rel="noopener">
+    <div class="meta"><span class="tag" style="background:${f.color}">${esc(f.nombre)}</span><span class="tagtema">${esc(nombreTema(n.tema))}</span><span>${hace(n.fecha)}</span></div>
+    <h3>${esc(n.titulo)}</h3>${n.resumen ? `<p>${esc(n.resumen)}</p>` : ""}</a></article>`;
+}
+
+function pintarUltimas(q){
+  const F = fuenteDe();
+  const visibles = datos.noticias.filter((n) => pasa(n, q));
+  if (!visibles.length) return `<div class="aviso">No hay noticias con ese filtro.</div>`;
+  if (vistaU === "mezcla") return `<div class="lista">${visibles.map((n) => tarjeta(n, F[n.fuente])).join("")}</div>`;
+  const cols = datos.fuentes.filter((f) => !apagadas.has(f.id)).map((f) => {
+    const items = visibles.filter((n) => n.fuente === f.id);
+    if (!items.length) return "";
+    return `<section class="col"><h2 style="border-color:${f.color}">${esc(f.nombre)}</h2>
+      <div class="items">${items.map((n) => tarjeta(n, f)).join("")}</div></section>`;
+  }).join("");
+  return `<div class="columnas">${cols}</div>`;
+}
+
+// ───── pestaña: cómo lo cubrió cada medio ─────
+// devuelve los grupos con sus notas visibles (una por medio: la primera que publicó... la más reciente)
+function gruposVisibles(ignorarTema = false){
+  const q = sinTildes($("#buscar").value.trim());
+  const N = datos.noticias;
+  return datos.grupos.map((g) => {
+    const porMedio = new Map();
+    g.items.map((i) => N[i]).filter((n) => !apagadas.has(n.fuente)).forEach((n) => { if (!porMedio.has(n.fuente)) porMedio.set(n.fuente, n); });
+    return { ...g, porMedio };
+  }).filter((g) => g.porMedio.size >= 2 &&
+    (ignorarTema || tema === "todos" || g.tema === tema) &&
+    (!q || [...g.porMedio.values()].some((n) => sinTildes(n.titulo + " " + n.resumen).includes(q))));
+}
+
+function pintarComparar(){
+  const F = fuenteDe();
+  const grupos = gruposVisibles();
+  const activas = datos.fuentes.filter((f) => f.ok && !apagadas.has(f.id));
+  if (!grupos.length) return `<div class="aviso">No hay noticias cubiertas por más de un medio con ese filtro.</div>`;
+
+  if (vistaC === "tarjetas") {
+    return `<div class="grupos">${grupos.map((g) => {
+      const lineas = [...g.porMedio.values()].sort((a, b) => (a.fecha || "").localeCompare(b.fecha || "")).map((n) => {
+        const f = F[n.fuente];
+        return `<div class="linea"><span class="tag" style="background:${f.color}">${esc(f.nombre)}</span>
+          <div><a href="${esc(n.link)}" target="_blank" rel="noopener">${esc(n.titulo)}</a><span class="hora">${hora(n.fecha)}</span></div></div>`;
+      }).join("");
+      const faltan = activas.filter((f) => !g.porMedio.has(f.id)).map((f) => f.nombre);
+      return `<section class="grupo">
+        <div class="cab"><span class="tagtema">${esc(nombreTema(g.tema))}</span><span>${g.porMedio.size} medios</span><span>· ${hace(g.fecha)}</span></div>
+        ${lineas}
+        ${faltan.length ? `<div class="faltan">No aparece en: ${esc(faltan.join(", "))}</div>` : ""}
+      </section>`;
+    }).join("")}</div>`;
+  }
+
+  // tabla
+  const cols = activas.filter((f) => grupos.some((g) => g.porMedio.has(f.id)));
+  const cab = `<tr><th class="tema">Tema</th>${cols.map((f) => `<th style="border-bottom-color:${f.color}">${esc(f.nombre)}</th>`).join("")}</tr>`;
+  const filas = grupos.map((g) => `<tr><td class="tema">${esc(nombreTema(g.tema))}<br>${g.porMedio.size} medios<br>${hace(g.fecha)}</td>${
+    cols.map((f) => { const n = g.porMedio.get(f.id);
+      return n ? `<td><a href="${esc(n.link)}" target="_blank" rel="noopener">${esc(n.titulo)}</a></td>` : `<td class="vacio">—</td>`; }).join("")}</tr>`).join("");
+  return `<div class="tablawrap"><table><thead>${cab}</thead><tbody>${filas}</tbody></table></div>`;
 }
 
 function pintar(){
   const q = sinTildes($("#buscar").value.trim());
-  const fuentes = Object.fromEntries(datos.fuentes.map((f) => [f.id, f]));
-  const visibles = datos.noticias.filter((n) =>
-    !apagadas.has(n.fuente) && (!q || sinTildes(n.titulo + " " + n.resumen).includes(q)));
-
-  if (!visibles.length) { $("#contenido").innerHTML = `<div class="aviso">No hay noticias con ese filtro.</div>`; return; }
-
-  if (vista === "mezcla") {
-    $("#contenido").innerHTML = `<div class="lista">${visibles.map((n) => tarjeta(n, fuentes[n.fuente])).join("")}</div>`;
-  } else {
-    const cols = datos.fuentes.filter((f) => !apagadas.has(f.id)).map((f) => {
-      const items = visibles.filter((n) => n.fuente === f.id);
-      if (!items.length) return "";
-      return `<section class="col"><h2 style="border-color:${f.color}">${esc(f.nombre)}</h2>
-        <div class="items">${items.map((n) => tarjeta(n, f)).join("")}</div></section>`;
-    }).join("");
-    $("#contenido").innerHTML = `<div class="columnas">${cols}</div>`;
-  }
+  $("#contenido").innerHTML = pestaña === "ultimas" ? pintarUltimas(q) : pintarComparar();
 }
 
 async function cargar(){
@@ -127,18 +237,19 @@ async function cargar(){
     if (!r.ok || json.error) throw new Error(`HTTP ${r.status}: ${json.error || ""}`);
     datos = json;
     const ok = datos.fuentes.filter((f) => f.ok).length;
-    $("#estado").textContent = `${datos.noticias.length} notas de ${ok}/${datos.fuentes.length} medios · actualizado ${hace(datos.actualizado)}`;
-    pintarChips(); pintar();
+    $("#estado").textContent = `Últimas ${datos.horas || 24} h · ${datos.noticias.length} notas de ${ok}/${datos.fuentes.length} medios · ${datos.grupos.length} temas compartidos · actualizado ${hace(datos.actualizado)}`;
+    pintarControles(); pintar();
   } catch (e) {
     $("#estado").textContent = "Error al cargar";
     $("#contenido").innerHTML = `<div class="aviso">No se pudieron traer las noticias.<br><br><code style="font-size:12px;white-space:pre-wrap">${esc(e.message)}</code></div>`;
   }
 }
 
-$("#buscar").oninput = pintar;
-$("#vMezcla").onclick = () => { vista = "mezcla"; $("#vMezcla").classList.add("activo"); $("#vMedios").classList.remove("activo"); pintar(); };
-$("#vMedios").onclick = () => { vista = "medios"; $("#vMedios").classList.add("activo"); $("#vMezcla").classList.remove("activo"); pintar(); };
+$("#buscar").oninput = () => { pintarControles(); pintar(); };
+$("#tabUltimas").onclick = () => { pestaña = "ultimas"; guardar("pestaña", pestaña); pintarControles(); pintar(); };
+$("#tabComparar").onclick = () => { pestaña = "comparar"; guardar("pestaña", pestaña); pintarControles(); pintar(); };
 $("#recargar").onclick = cargar;
+pintarControles();
 cargar();
 </script>
 </body>
